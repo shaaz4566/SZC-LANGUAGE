@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>SZC Playground</title>
+<style>
+:root{color-scheme:dark;--bg:#0b0d10;--panel:#12161b;--border:#27303a;--text:#f5f7fa;--muted:#9aa6b2;--accent:#5b8cff}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+header{padding:18px 16px;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(11,13,16,.95);backdrop-filter:blur(12px);z-index:2}
+.brand{font-size:22px;font-weight:800}.sub{font-size:12px;color:var(--muted);margin-top:3px}
+main{display:grid;grid-template-columns:1fr;gap:12px;padding:12px;max-width:1200px;margin:auto}
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:16px;overflow:hidden}
+.panelbar{padding:10px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-weight:700}
+textarea{width:100%;min-height:430px;resize:vertical;border:0;outline:0;background:#0e1115;color:#dfe7ef;padding:16px;font:15px/1.65 ui-monospace,SFMono-Regular,Menlo,monospace}
+.preview{width:100%;min-height:430px;border:0;background:white}
+button{border:0;border-radius:10px;padding:9px 14px;background:var(--accent);color:white;font-weight:700;cursor:pointer}
+.secondary{background:#26303a}.actions{display:flex;gap:8px}.status{font-size:12px;color:var(--muted);padding:8px 12px;border-top:1px solid var(--border)}
+@media(min-width:850px){main{grid-template-columns:1fr 1fr}.preview{height:520px}}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">SZC Playground</div>
+  <div class="sub">English-like programming • iPad-ready prototype</div>
+</header>
+<main>
+<section class="panel">
+  <div class="panelbar"><span>SZC Code</span><div class="actions"><button id="run">▶ Run</button><button class="secondary" id="reset">Reset</button></div></div>
+  <textarea id="code" spellcheck="false">Create a website called "SZC Demo".
+
+Set the page title to "My SZC Website".
+Set the page background color to "#101318".
+
+Create a heading "Welcome to SZC".
+The heading text color should be white.
+The heading should be centered.
+
+Create a paragraph "Programming in normal English.".
+The paragraph text color should be "#b9c3cf".
+The paragraph should be centered.
+
+Create a button "Click Me".
+The button background color should be blue.
+The button text color should be white.
+The button corners should be rounded by 16 pixels.
+
+When the "Click Me" button is clicked,
+show an alert saying "Hello from SZC!".
+
+Create a link "Visit SZC".
+The link should open "https://example.com".
+Open the link in a new tab.</textarea>
+  <div class="status" id="status">Ready.</div>
+</section>
+<section class="panel">
+  <div class="panelbar"><span>Live Preview</span></div>
+  <iframe class="preview" id="preview" sandbox="allow-scripts allow-forms allow-popups"></iframe>
+</section>
+</main>
+<script>
+const defaultCode=document.getElementById('code').value;
+const codeEl=document.getElementById('code'), frame=document.getElementById('preview'), statusEl=document.getElementById('status');
+const esc=s=>s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function valAfter(line,re){const m=line.match(re);return m?m[1].trim():null}
+function parseSZC(src){
+ let bg='#fff', title='SZC Website', body='', pending=null, events=[];
+ const lines=src.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
+ let i=0;
+ while(i<lines.length){
+  let l=lines[i], m;
+  if(m=l.match(/^Create a website called ["“](.*?)["”]\.?$/i)){title=m[1];i++;continue}
+  if(m=l.match(/^Set the page title to ["“](.*?)["”]\.?$/i)){title=m[1];i++;continue}
+  if(m=l.match(/^Set the page background color to ["“](.*?)["”]\.?$/i)){bg=m[1];i++;continue}
+  if(m=l.match(/^Create a heading ["“](.*?)["”]\.?$/i)){let t=m[1],color=null,center=false;
+    if(lines[i+1]?.match(/^The heading text color should be (.+?)\.?$/i)){color=RegExp.$1;i++}
+    if(lines[i+1]?.match(/^The heading should be centered\.?$/i)){center=true;i++}
+    body+=`<h1 style="${color?'color:'+safeColor(color)+';':''}${center?'text-align:center;':''}">${esc(t)}</h1>`;i++;continue}
+  if(m=l.match(/^Create a paragraph ["“](.*?)["”]\.?$/i)){let t=m[1],color=null,center=false;
+    if(lines[i+1]?.match(/^The paragraph text color should be (.+?)\.?$/i)){color=RegExp.$1;i++}
+    if(lines[i+1]?.match(/^The paragraph should be centered\.?$/i)){center=true;i++}
+    body+=`<p style="${color?'color:'+safeColor(color)+';':''}${center?'text-align:center;':''}">${esc(t)}</p>`;i++;continue}
+  if(m=l.match(/^Create a button ["“](.*?)["”]\.?$/i)){let t=m[1],bgc=null,tc=null,rad=null;
+    if(lines[i+1]?.match(/^The button background color should be (.+?)\.?$/i)){bgc=RegExp.$1;i++}
+    if(lines[i+1]?.match(/^The button text color should be (.+?)\.?$/i)){tc=RegExp.$1;i++}
+    if(lines[i+1]?.match(/^The button corners should be rounded by (\d+) pixels\.?$/i)){rad=RegExp.$1;i++}
+    const id='szcbtn'+events.length;
+    body+=`<button id="${id}" style="${bgc?'background:'+safeColor(bgc)+';':''}${tc?'color:'+safeColor(tc)+';':''}${rad?'border-radius:'+rad+'px;':''}">${esc(t)}</button>`;
+    if(lines[i+1]?.match(/^When the ["“](.*?)["”] button is clicked,$/i)){
+      const msg=lines[i+2]?.match(/^show an alert saying ["“](.*?)["”]\.?$/i);
+      if(msg){events.push(`document.getElementById('${id}').addEventListener('click',()=>alert(${JSON.stringify(msg[1])}));`);i+=2}
+    }
+    i++;continue}
+  if(m=l.match(/^Create a link ["“](.*?)["”]\.?$/i)){let t=m[1],url=null,newtab=false;
+    if(lines[i+1]?.match(/^The link should open ["“](.*?)["”]\.?$/i)){url=RegExp.$1;i++}
+    if(lines[i+1]?.match(/^Open the link in a new tab\.?$/i)){newtab=true;i++}
+    body+=`<a href="${esc(url||'#')}" ${newtab?'target="_blank" rel="noopener"':''}>${esc(t)}</a>`;i++;continue}
+  i++;
+ }
+ return `<!doctype html><html><head><meta charset="utf-8"><title>${esc(title)}</title><style>
+ body{margin:0;padding:40px;font-family:system-ui,sans-serif;background:${safeColor(bg)};color:#111;display:flex;flex-direction:column;align-items:center;gap:18px}
+ h1,p{max-width:800px}button{padding:12px 20px;border:0;cursor:pointer;font-size:16px}a{margin-top:8px}
+ </style></head><body>${body}<script>${events.join('\\n')}<\/script></body></html>`;
+}
+function safeColor(v){v=v.trim(); if(/^[#a-zA-Z0-9(),.%\\s-]+$/.test(v)) return v; return '#888'}
+function run(){try{frame.srcdoc=parseSZC(codeEl.value);statusEl.textContent='SZC compiled successfully.'}catch(e){statusEl.textContent='SZC error: '+e.message}}
+document.getElementById('run').onclick=run;
+document.getElementById('reset').onclick=()=>{codeEl.value=defaultCode;run()};
+run();
+</script>
+</body>
+</html>
