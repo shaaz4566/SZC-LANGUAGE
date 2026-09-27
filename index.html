@@ -1,23 +1,43 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>SZC Playground</title>
 <style>
-*{box-sizing:border-box}body{margin:0;background:#0b0d10;color:#f5f7fa;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-header{padding:16px;border-bottom:1px solid #29313a;position:sticky;top:0;background:#0b0d10;z-index:3}.brand{font-size:22px;font-weight:800}.sub{font-size:12px;color:#9aa6b2}
-main{max-width:1250px;margin:auto;padding:12px;display:grid;grid-template-columns:1fr;gap:12px}.panel{border:1px solid #29313a;border-radius:16px;overflow:hidden;background:#12161b}.bar{padding:10px 12px;border-bottom:1px solid #29313a;display:flex;justify-content:space-between;align-items:center;font-weight:700}
-.actions{display:flex;gap:7px}button{border:0;border-radius:9px;padding:9px 13px;background:#5b8cff;color:white;font-weight:700}.secondary{background:#29313a}
-textarea{display:block;width:100%;min-height:500px;resize:vertical;border:0;outline:0;background:#0e1115;color:#dfe7ef;padding:15px;font:14px/1.65 ui-monospace,SFMono-Regular,Menlo,monospace}
-iframe{display:block;width:100%;height:500px;border:0;background:white}.status{padding:8px 12px;border-top:1px solid #29313a;color:#9aa6b2;font-size:12px}
+*{box-sizing:border-box}
+body{margin:0;background:#0b0d10;color:#f5f7fa;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+header{padding:16px;border-bottom:1px solid #29313a;position:sticky;top:0;background:#0b0d10;z-index:3}
+.brand{font-size:22px;font-weight:800}.sub{font-size:12px;color:#9aa6b2;margin-top:3px}
+main{max-width:1300px;margin:auto;padding:12px;display:grid;grid-template-columns:1fr;gap:12px}
+.panel{border:1px solid #29313a;border-radius:16px;overflow:hidden;background:#12161b}
+.bar{padding:10px 12px;border-bottom:1px solid #29313a;display:flex;justify-content:space-between;align-items:center;font-weight:700}
+.actions{display:flex;gap:7px}
+button.run,button.reset{border:0;border-radius:9px;padding:9px 13px;font-weight:700;cursor:pointer}
+button.run{background:#5b8cff;color:white}.reset{background:#29313a;color:white}
+textarea{display:block;width:100%;min-height:520px;resize:vertical;border:0;outline:0;background:#0e1115;color:#dfe7ef;padding:15px;font:14px/1.65 ui-monospace,SFMono-Regular,Menlo,monospace}
+iframe{display:block;width:100%;height:520px;border:0;background:white}
+.status{padding:8px 12px;border-top:1px solid #29313a;color:#9aa6b2;font-size:12px}
 @media(min-width:850px){main{grid-template-columns:1fr 1fr}}
 </style>
 </head>
 <body>
-<header><div class="brand">SZC Playground</div><div class="sub">SZC 0.2 • Website + Styles + Links + Images + JavaScript</div></header>
+<header>
+  <div class="brand">SZC Playground</div>
+  <div class="sub">SZC 0.3 • website: styles: links: images: javascript:</div>
+</header>
+
 <main>
-<section class="panel"><div class="bar"><span>SZC Editor</span><div class="actions"><button id="run">▶ Run</button><button id="reset" class="secondary">Reset</button></div></div>
-<textarea id="code" spellcheck="false">website is to
+<section class="panel">
+  <div class="bar">
+    <span>SZC Editor</span>
+    <div class="actions">
+      <button class="run" id="run">▶ Run</button>
+      <button class="reset" id="reset">Reset</button>
+    </div>
+  </div>
+
+<textarea id="code" spellcheck="false">website:
 
 Create a website called "SZC Demo".
 Set the page title to "SZC — English Programming".
@@ -41,7 +61,7 @@ Create a button "Show Video".
 When the "Show Video" button is clicked,
 show the video "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4".
 
-styles is to
+styles:
 
 The page background color should be "#101318".
 The heading text color should be white.
@@ -51,76 +71,264 @@ The button background color should be blue.
 The button text color should be white.
 The button corners should be rounded by 14 pixels.
 
-links is to
+links:
 
 Link "MDN" to "https://developer.mozilla.org".
 Open external links in a new tab.
 
-images is to
+images:
 
 Image "Logo" is "https://picsum.photos/180/100".
 
-javascript is to
+javascript:
 
 When the page loads, write "SZC is running" to the console.</textarea>
-<div class="status" id="status">Ready.</div></section>
-<section class="panel"><div class="bar"><span>Live Preview</span></div><iframe id="preview" sandbox="allow-scripts allow-forms allow-popups allow-modals"></iframe></section>
+
+<div class="status" id="status">Ready.</div>
+</section>
+
+<section class="panel">
+  <div class="bar"><span>Live Preview</span></div>
+  <iframe id="preview" sandbox="allow-scripts allow-forms allow-popups allow-modals"></iframe>
+</section>
 </main>
+
 <script>
-const code=document.getElementById('code'), frame=document.getElementById('preview'), status=document.getElementById('status'), initial=code.value;
-const clean=s=>s.trim().replace(/[“”]/g,'"');
-const quoted=s=>{let m=s.match(/"([\s\S]*?)"/);return m?m[1]:''};
-function color(v){v=v.trim();return /^[#a-zA-Z0-9(),.%\\s-]+$/.test(v)?v:'#888'}
-function parse(src){
- const lines=src.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
- let mode='website', title='SZC Website', bg='#fff', body='', css=[], js=[], headLinks=[], assets=[], events=[], lastButton=null;
- function addButton(name){let id='szc_'+events.length+'_'+Math.random().toString(36).slice(2,6);lastButton={name,id};body+=`<button id="${id}" class="szc-button">${esc(name)}</button>`;return id}
- function esc(x){return x.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
- for(let i=0;i<lines.length;i++){
-  let l=clean(lines[i]), m;
-  if(l==='website is to'){mode='website';continue}
-  if(l==='styles is to'){mode='styles';continue}
-  if(l==='links is to'){mode='links';continue}
-  if(l==='images is to'){mode='images';continue}
-  if(l==='javascript is to'){mode='javascript';continue}
-  if(mode==='website'){
-   if(m=l.match(/^Create a website called "(.+?)"\.?$/i)) continue;
-   if(m=l.match(/^Set the page title to "(.+?)"\.?$/i)){title=m[1];continue}
-   if(m=l.match(/^Create a heading "(.+?)"\.?$/i)){body+=`<h1>${esc(m[1])}</h1>`;continue}
-   if(m=l.match(/^Create a paragraph "(.+?)"\.?$/i)){body+=`<p>${esc(m[1])}</p>`;continue}
-   if(m=l.match(/^Create a button "(.+?)"\.?$/i)){addButton(m[1]);continue}
-   if(m=l.match(/^When the "(.+?)" button is clicked,$/i)){let action=lines[i+1]?clean(lines[++i]):'';let target=lastButton&&lastButton.name===m[1]?lastButton:null;
-      if(!target) target={id:addButton(m[1])};
-      if((m=action.match(/^open "(.+?)"\.?$/i))) events.push(`document.getElementById(${JSON.stringify(target.id)}).onclick=()=>window.open(${JSON.stringify(m[1])},'_blank','noopener');`);
-      else if((m=action.match(/^show the image "(.+?)"\.?$/i))) events.push(`document.getElementById(${JSON.stringify(target.id)}).onclick=()=>showImage(${JSON.stringify(m[1])});`);
-      else if((m=action.match(/^show the video "(.+?)"\.?$/i))) events.push(`document.getElementById(${JSON.stringify(target.id)}).onclick=()=>showVideo(${JSON.stringify(m[1])});`);
-      else if((m=action.match(/^show an alert saying "(.+?)"\.?$/i))) events.push(`document.getElementById(${JSON.stringify(target.id)}).onclick=()=>alert(${JSON.stringify(m[1])});`);
-      continue}
-   if(m=l.match(/^The button should be (\d+) pixels from the left\.?$/i)) css.push(`#${lastButton?.id}{margin-left:${m[1]}px!important}`); 
-   if(m=l.match(/^The button width should be (\d+) pixels\.?$/i)) css.push(`#${lastButton?.id}{width:${m[1]}px!important}`);
-   if(m=l.match(/^The button height should be (\d+) pixels\.?$/i)) css.push(`#${lastButton?.id}{height:${m[1]}px!important}`);
-  } else if(mode==='styles'){
-   if(m=l.match(/^The page background color should be (.+?)\.?$/i)) bg=color(m[1]);
-   else if(m=l.match(/^The heading text color should be (.+?)\.?$/i)) css.push(`h1{color:${color(m[1])}}`);
-   else if(m=l.match(/^The heading should be centered\.?$/i)) css.push(`h1{text-align:center}`);
-   else if(m=l.match(/^The paragraph text color should be (.+?)\.?$/i)) css.push(`p{color:${color(m[1])}`);
-   else if(m=l.match(/^The button background color should be (.+?)\.?$/i)) css.push(`.szc-button{background:${color(m[1])}}`);
-   else if(m=l.match(/^The button text color should be (.+?)\.?$/i)) css.push(`.szc-button{color:${color(m[1])}`);
-   else if(m=l.match(/^The button corners should be rounded by (\d+) pixels\.?$/i)) css.push(`.szc-button{border-radius:${m[1]}px}`);
-  } else if(mode==='links'){
-   if(m=l.match(/^Link "(.+?)" to "(.+?)"\.?$/i)) body+=`<a class="szc-link" href="${esc(m[2])}" target="_blank" rel="noopener">${esc(m[1])}</a>`;
-   if(/^Open external links in a new tab\.?$/i.test(l)) headLinks.push('newtab');
-  } else if(mode==='images'){
-   if(m=l.match(/^Image "(.+?)" is "(.+?)"\.?$/i)) body+=`<img alt="${esc(m[1])}" src="${esc(m[2])}" class="szc-image">`;
-  } else if(mode==='javascript'){
-   if(/^When the page loads, write "(.+?)" to the console\.?$/i.test(l)) js.push(`console.log(${JSON.stringify(quoted(l))});`);
-  }
- }
- let common=`body{margin:0;padding:30px;font-family:system-ui,sans-serif;background:${bg};display:flex;flex-direction:column;align-items:center;gap:18px}.szc-button{border:0;padding:12px 20px;cursor:pointer;font-size:16px}.szc-link{display:inline-block}.szc-image{max-width:100%;height:auto;border-radius:12px}`;
- let runtime=`function showImage(u){let o=document.getElementById('szcOverlay');o.innerHTML='<div class="overlay"><button class="close" onclick="this.parentElement.parentElement.remove()">Close</button><img src="'+u.replace(/"/g,'&quot;')+'"></div>';document.body.appendChild(o)} function showVideo(u){let o=document.getElementById('szcOverlay');o.innerHTML='<div class="overlay"><button class="close" onclick="this.parentElement.parentElement.remove()">Close</button><video src="'+u.replace(/"/g,'&quot;')+'" controls autoplay></video></div>';document.body.appendChild(o)} window.addEventListener('load',()=>{${js.join('\\n')}});${events.join('\\n')}`;
- return `<!doctype html><html><head><meta charset="utf-8"><title>${esc(title)}</title><style>${common}${css.join('')} .overlay{position:fixed;inset:0;background:rgba(0,0,0,.88);display:flex;align-items:center;justify-content:center;z-index:9999}.overlay img,.overlay video{max-width:90%;max-height:85%;background:#111}.close{position:fixed;top:20px;right:20px;padding:10px 15px;z-index:10000}</style></head><body>${body}<div id="szcOverlay"></div><script>${runtime.replace(/<\/script/gi,'<\\\\/script')}<\/script></body></html>`;
+const editor = document.getElementById("code");
+const preview = document.getElementById("preview");
+const statusBox = document.getElementById("status");
+const initial = editor.value;
+
+function getQuoted(text){
+  const m = text.match(/"([\s\S]*?)"/);
+  return m ? m[1] : "";
 }
-function run(){try{frame.srcdoc=parse(code.value);status.textContent='SZC compiled successfully • Website, styles, links, images and JavaScript loaded.'}catch(e){status.textContent='SZC error: '+e.message}}
-document.getElementById('run').onclick=run;document.getElementById('reset').onclick=()=>{code.value=initial;run()};run();
+function esc(text){
+  return String(text).replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[c]));
+}
+function safeColor(text){
+  text = text.trim();
+  return /^[#a-zA-Z0-9(),.%\s-]+$/.test(text) ? text : "#888";
+}
+
+function compileSZC(source){
+  const raw = source.split(/\r?\n/);
+  const sections = {website:[], styles:[], links:[], images:[], javascript:[]};
+  let current = "website";
+
+  for(let line of raw){
+    line = line.trim();
+    if(!line) continue;
+
+    const section = line.match(/^(website|styles|links|images|javascript)\s*:\s*$/i);
+    if(section){
+      current = section[1].toLowerCase();
+      continue;
+    }
+    sections[current].push(line);
+  }
+
+  let title = "SZC Website";
+  let pageBackground = "#ffffff";
+  let content = "";
+  let css = [];
+  let actions = [];
+  let buttonCount = 0;
+
+  function makeId(){
+    buttonCount++;
+    return "szcButton" + buttonCount;
+  }
+
+  // WEBSITE
+  const w = sections.website;
+  for(let i=0;i<w.length;i++){
+    let line=w[i], m;
+
+    if((m=line.match(/^Set the page title to "(.+?)"\.?$/i))){
+      title=m[1];
+      continue;
+    }
+
+    if((m=line.match(/^Create a heading "(.+?)"\.?$/i))){
+      content += `<h1>${esc(m[1])}</h1>`;
+      continue;
+    }
+
+    if((m=line.match(/^Create a paragraph "(.+?)"\.?$/i))){
+      content += `<p>${esc(m[1])}</p>`;
+      continue;
+    }
+
+    if((m=line.match(/^Create a button "(.+?)"\.?$/i))){
+      const name=m[1], id=makeId();
+      content += `<button type="button" id="${id}" class="szc-button">${esc(name)}</button>`;
+
+      // Read properties immediately following this button.
+      let j=i+1;
+      const props=[];
+      while(j<w.length && !/^Create |^When the /i.test(w[j])){
+        props.push(w[j]);
+        j++;
+      }
+
+      for(const p of props){
+        let x;
+        if((x=p.match(/^The button should be (\d+) pixels from the left\.?$/i)))
+          css.push(`#${id}{margin-left:${x[1]}px!important}`);
+        else if((x=p.match(/^The button width should be (\d+) pixels\.?$/i)))
+          css.push(`#${id}{width:${x[1]}px!important}`);
+        else if((x=p.match(/^The button height should be (\d+) pixels\.?$/i)))
+          css.push(`#${id}{height:${x[1]}px!important}`);
+      }
+
+      i=j-1;
+      continue;
+    }
+
+    if((m=line.match(/^When the "(.+?)" button is clicked,$/i))){
+      const buttonName=m[1];
+      const next=w[i+1] || "";
+      let action=null;
+
+      let x;
+      if((x=next.match(/^open "(.+?)"\.?$/i)))
+        action={type:"open",value:x[1]};
+      else if((x=next.match(/^show the image "(.+?)"\.?$/i)))
+        action={type:"image",value:x[1]};
+      else if((x=next.match(/^show the video "(.+?)"\.?$/i)))
+        action={type:"video",value:x[1]};
+      else if((x=next.match(/^show an alert saying "(.+?)"\.?$/i)))
+        action={type:"alert",value:x[1]};
+
+      if(action){
+        actions.push({buttonName, ...action});
+        i++;
+      }
+      continue;
+    }
+  }
+
+  // STYLES
+  for(const line of sections.styles){
+    let m;
+    if((m=line.match(/^The page background color should be (.+?)\.?$/i)))
+      pageBackground=safeColor(m[1]);
+    else if((m=line.match(/^The heading text color should be (.+?)\.?$/i)))
+      css.push(`h1{color:${safeColor(m[1])}}`);
+    else if(/^The heading should be centered\.?$/i.test(line))
+      css.push(`h1{text-align:center}`);
+    else if((m=line.match(/^The paragraph text color should be (.+?)\.?$/i)))
+      css.push(`p{color:${safeColor(m[1])}}`);
+    else if((m=line.match(/^The button background color should be (.+?)\.?$/i)))
+      css.push(`.szc-button{background:${safeColor(m[1])}}`);
+    else if((m=line.match(/^The button text color should be (.+?)\.?$/i)))
+      css.push(`.szc-button{color:${safeColor(m[1])}}`);
+    else if((m=line.match(/^The button corners should be rounded by (\d+) pixels\.?$/i)))
+      css.push(`.szc-button{border-radius:${m[1]}px}`);
+  }
+
+  // LINKS
+  for(const line of sections.links){
+    const m=line.match(/^Link "(.+?)" to "(.+?)"\.?$/i);
+    if(m) content += `<a href="${esc(m[2])}" target="_blank" rel="noopener">${esc(m[1])}</a>`;
+  }
+
+  // IMAGES
+  for(const line of sections.images){
+    const m=line.match(/^Image "(.+?)" is "(.+?)"\.?$/i);
+    if(m) content += `<img class="szc-image" alt="${esc(m[1])}" src="${esc(m[2])}">`;
+  }
+
+  // JAVASCRIPT
+  let js=[];
+  for(const line of sections.javascript){
+    const m=line.match(/^When the page loads, write "(.+?)" to the console\.?$/i);
+    if(m) js.push(`console.log(${JSON.stringify(m[1])});`);
+  }
+
+  // Convert action names to real button IDs.
+  const actionJS = actions.map(a => {
+    const buttonId = findButtonId(content, a.buttonName);
+    if(!buttonId) return "";
+    const value=JSON.stringify(a.value);
+    if(a.type==="open")
+      return `document.getElementById(${JSON.stringify(buttonId)}).addEventListener("click",function(){window.open(${value},"_blank","noopener,noreferrer");});`;
+    if(a.type==="alert")
+      return `document.getElementById(${JSON.stringify(buttonId)}).addEventListener("click",function(){alert(${value});});`;
+    if(a.type==="image")
+      return `document.getElementById(${JSON.stringify(buttonId)}).addEventListener("click",function(){showMedia("image",${value});});`;
+    if(a.type==="video")
+      return `document.getElementById(${JSON.stringify(buttonId)}).addEventListener("click",function(){showMedia("video",${value});});`;
+    return "";
+  }).join("\n");
+
+  function findButtonId(markup, name){
+    const target=esc(name);
+    const re=new RegExp(`<button[^>]*id="([^"]+)"[^>]*>${target}<\\\\/button>`);
+    const m=markup.match(re);
+    return m?m[1]:null;
+  }
+
+  const runtime = `
+function showMedia(type,url){
+  const old=document.getElementById("szcMediaOverlay");
+  if(old) old.remove();
+  const overlay=document.createElement("div");
+  overlay.id="szcMediaOverlay";
+  overlay.style.cssText="position:fixed;inset:0;background:rgba(0,0,0,.9);display:flex;align-items:center;justify-content:center;z-index:99999;padding:20px;";
+  const box=document.createElement("div");
+  box.style.cssText="position:relative;max-width:92vw;max-height:92vh;display:flex;align-items:center;justify-content:center;";
+  const close=document.createElement("button");
+  close.textContent="Close";
+  close.style.cssText="position:fixed;top:18px;right:18px;z-index:100000;padding:10px 16px;border:0;border-radius:10px;background:white;color:black;font-weight:700;";
+  close.onclick=()=>overlay.remove();
+  box.appendChild(close);
+  if(type==="image"){
+    const img=document.createElement("img");
+    img.src=url; img.style.cssText="max-width:90vw;max-height:85vh;border-radius:12px;";
+    box.appendChild(img);
+  }else{
+    const video=document.createElement("video");
+    video.src=url; video.controls=true; video.autoplay=true;
+    video.style.cssText="max-width:90vw;max-height:85vh;";
+    box.appendChild(video);
+  }
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+}
+${actionJS}
+window.addEventListener("load",function(){${js.join("\n")}});
+`;
+
+  const baseCSS=`
+body{margin:0;padding:32px;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:${pageBackground};color:#111;display:flex;flex-direction:column;align-items:center;gap:18px;min-height:100vh;width:100%;box-sizing:border-box}
+h1,p{max-width:900px}
+.szc-button{padding:12px 20px;border:0;cursor:pointer;font-size:16px;background:#eee;color:#111}
+.szc-image{max-width:100%;height:auto;border-radius:12px}
+a{display:inline-block}
+${css.join("\n")}
+`;
+
+  const scriptClose = "<" + "/script>";
+  return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(title)}</title><style>${baseCSS}</style></head><body>${content}<script>${runtime}${scriptClose}</body></html>`;
+}
+
+function run(){
+  try{
+    const compiled=compileSZC(editor.value);
+    preview.srcdoc=compiled;
+    statusBox.textContent="SZC compiled successfully. Buttons, links, images, videos and styles are active.";
+  }catch(error){
+    console.error(error);
+    statusBox.textContent="SZC error: "+error.message;
+  }
+}
+document.getElementById("run").addEventListener("click",run);
+document.getElementById("reset").addEventListener("click",()=>{editor.value=initial;run();});
+run();
 </script>
-</body></html>
+</body>
+</html>
